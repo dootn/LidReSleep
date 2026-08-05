@@ -1,0 +1,6 @@
+# build artifacts
+bin/
+cmd/lidsleep/rsrc.syso
+
+# build caches
+.cache/
