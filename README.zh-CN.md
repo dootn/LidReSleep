@@ -1,6 +1,6 @@
 # LidReSleep
 
-[English](./README.md) | **简体中文**
+[English](./README.md) | **简体中文** | [日本語](./README.ja.md) | [한국어](./README.ko.md) | [Français](./README.fr.md) | [Deutsch](./README.de.md) | [Español](./README.es.md) | [Русский](./README.ru.md) | [Português](./README.pt.md) | [Italiano](./README.it.md)
 
 一款小巧的 Windows 后台工具，解决笔记本"合上盖子还在发热"的问题。
 
@@ -9,7 +9,7 @@
 LidReSleep 做的事很简单：**合盖就睡眠；万一被意外唤醒而盖子仍关闭，就自动再次入睡，直到你开盖。**
 
 - 单文件绿色软件，双击即用，无需安装
-- 中英文界面，自动按系统语言显示
+- 界面支持 10 种语言（简体中文 / English / 日本語 / 한국어 / Français / Deutsch / Español / Русский / Português / Italiano），自动按系统语言显示
 - Windows 10/11（x64 / ARM64 / x86），按 CPU 选择对应版本
 
 ![LidReSleep 界面截图](screenshot.jpg)
@@ -44,7 +44,7 @@ LidReSleep 做的事很简单：**合盖就睡眠；万一被意外唤醒而盖�
 ### 菜单栏
 - **文件**：退出
 - **工具**：测试睡眠（立即试睡一次验证）
-- **语言**：中文 / English（当前语言带勾选；切换后重启生效）
+- **语言**：10 种语言可选（当前语言带勾选；切换后立即生效）
 - **帮助**：检查更新（从 GitHub 检查是否有新版本）、项目主页、关于（含功能与 Modern Standby 科普）
 
 ### 运行日志

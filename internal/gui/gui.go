@@ -100,10 +100,29 @@ var (
 	minTrayCb   *walk.CheckBox
 	closeTrayCb *walk.CheckBox
 
-	zhLangAct *walk.Action
-	enLangAct *walk.Action
+	// Text-bearing widgets, kept so the language can be re-applied live.
+	fileMenuAct  *walk.Action
+	exitAct      *walk.Action
+	toolsMenuAct *walk.Action
+	testSleepAct *walk.Action
+	langMenuAct  *walk.Action
+	helpMenuAct  *walk.Action
+	checkUpdAct  *walk.Action
+	githubAct    *walk.Action
+	aboutAct     *walk.Action
+
+	statusGroup *walk.GroupBox
+	configGroup *walk.GroupBox
+	logGroup    *walk.GroupBox
+	delayLbl    *walk.Label
+	startupLbl  *walk.Label
+	windowLbl   *walk.Label
+
+	langActs []*walk.Action
 
 	tray             *walk.NotifyIcon
+	trayOpenAct      *walk.Action
+	trayExitAct      *walk.Action
 	trayBalloonShown bool
 	quitting         bool // user-initiated exit (tray/menu); allows the window to actually close
 
@@ -240,15 +259,15 @@ func createTray() error {
 	}
 
 	menu := t.ContextMenu()
-	openAct := walk.NewAction()
-	openAct.SetText(i18n.T("menu.showWindow"))
-	openAct.Triggered().Attach(showMainWindow)
-	menu.Actions().Add(openAct)
+	trayOpenAct = walk.NewAction()
+	trayOpenAct.SetText(i18n.T("menu.showWindow"))
+	trayOpenAct.Triggered().Attach(showMainWindow)
+	menu.Actions().Add(trayOpenAct)
 	menu.Actions().Add(walk.NewSeparatorAction())
-	exitAct := walk.NewAction()
-	exitAct.SetText(i18n.T("menu.exit"))
-	exitAct.Triggered().Attach(quitApp)
-	menu.Actions().Add(exitAct)
+	trayExitAct = walk.NewAction()
+	trayExitAct.SetText(i18n.T("menu.exit"))
+	trayExitAct.Triggered().Attach(quitApp)
+	menu.Actions().Add(trayExitAct)
 
 	t.MouseDown().Attach(func(x, y int, button walk.MouseButton) {
 		if button == walk.LeftButton {
@@ -311,38 +330,40 @@ func RunUI() {
 		Layout:   VBox{Margins: Margins{Left: 14, Top: 10, Right: 14, Bottom: 12}, Spacing: 8},
 		MenuItems: []MenuItem{
 			Menu{
-				Text: i18n.T("menu.file"),
+				AssignActionTo: &fileMenuAct,
+				Text:           i18n.T("menu.file"),
 				Items: []MenuItem{
-					Action{Text: i18n.T("menu.exit"), OnTriggered: quitApp},
+					Action{AssignTo: &exitAct, Text: i18n.T("menu.exit"), OnTriggered: quitApp},
 				},
 			},
 			Menu{
-				Text: i18n.T("menu.tools"),
+				AssignActionTo: &toolsMenuAct,
+				Text:           i18n.T("menu.tools"),
 				Items: []MenuItem{
-					Action{Text: i18n.T("menu.testSleep"), OnTriggered: engine.SleepNow},
+					Action{AssignTo: &testSleepAct, Text: i18n.T("menu.testSleep"), OnTriggered: engine.SleepNow},
 				},
 			},
 			Menu{
-				Text: i18n.T("menu.language"),
-				Items: []MenuItem{
-					Action{AssignTo: &zhLangAct, Text: i18n.T("lang.zh"), Checkable: true, Checked: i18n.GetLang() == "zh", OnTriggered: func() { setLang("zh") }},
-					Action{AssignTo: &enLangAct, Text: i18n.T("lang.en"), Checkable: true, Checked: i18n.GetLang() == "en", OnTriggered: func() { setLang("en") }},
-				},
+				AssignActionTo: &langMenuAct,
+				Text:           i18n.T("menu.language"),
+				Items:          langMenuItems(),
 			},
 			Menu{
-				Text: i18n.T("menu.help"),
+				AssignActionTo: &helpMenuAct,
+				Text:           i18n.T("menu.help"),
 				Items: []MenuItem{
-					Action{Text: i18n.T("menu.checkUpdate"), OnTriggered: checkForUpdates},
-					Action{Text: i18n.T("menu.github"), OnTriggered: openProjectPage},
-					Action{Text: i18n.T("menu.about"), OnTriggered: showAbout},
+					Action{AssignTo: &checkUpdAct, Text: i18n.T("menu.checkUpdate"), OnTriggered: checkForUpdates},
+					Action{AssignTo: &githubAct, Text: i18n.T("menu.github"), OnTriggered: openProjectPage},
+					Action{AssignTo: &aboutAct, Text: i18n.T("menu.about"), OnTriggered: showAbout},
 				},
 			},
 		},
 		Children: []Widget{
 			// Status
 			GroupBox{
-				Title:  i18n.T("status.group"),
-				Layout: VBox{Margins: Margins{Left: 10, Top: 6, Right: 10, Bottom: 8}, Spacing: 6},
+				AssignTo: &statusGroup,
+				Title:    i18n.T("status.group"),
+				Layout:   VBox{Margins: Margins{Left: 10, Top: 6, Right: 10, Bottom: 8}, Spacing: 6},
 				Children: []Widget{
 					Composite{
 						Layout: HBox{Spacing: 8},
@@ -356,23 +377,25 @@ func RunUI() {
 			},
 			// Settings
 			GroupBox{
-				Title:  i18n.T("config.group"),
-				Layout: VBox{Margins: Margins{Left: 10, Top: 6, Right: 10, Bottom: 8}, Spacing: 4},
+				AssignTo: &configGroup,
+				Title:    i18n.T("config.group"),
+				Layout:   VBox{Margins: Margins{Left: 10, Top: 6, Right: 10, Bottom: 8}, Spacing: 4},
 				Children: []Widget{
-					Label{Text: i18n.T("param.delay")},
+					Label{AssignTo: &delayLbl, Text: i18n.T("param.delay")},
 					NumberEdit{AssignTo: &delayEdit, ToolTipText: i18n.T("tt.delay"), MinSize: Size{Width: 200, Height: 24}, MaxSize: Size{Width: 200, Height: 24}},
-					Label{Text: i18n.T("section.startup"), Font: Font{Family: "Microsoft YaHei UI", PointSize: 9, Bold: true}},
+					Label{AssignTo: &startupLbl, Text: i18n.T("section.startup"), Font: Font{Family: "Microsoft YaHei UI", PointSize: 9, Bold: true}},
 					CheckBox{AssignTo: &autoBootCb, Text: i18n.T("cb.autoboot"), ToolTipText: i18n.T("tt.autoboot"), Alignment: AlignHNearVNear},
 					CheckBox{AssignTo: &autoGuardCb, Text: i18n.T("cb.autoguard"), ToolTipText: i18n.T("tt.autoguard"), Alignment: AlignHNearVNear},
-					Label{Text: i18n.T("section.window"), Font: Font{Family: "Microsoft YaHei UI", PointSize: 9, Bold: true}},
+					Label{AssignTo: &windowLbl, Text: i18n.T("section.window"), Font: Font{Family: "Microsoft YaHei UI", PointSize: 9, Bold: true}},
 					CheckBox{AssignTo: &minTrayCb, Text: i18n.T("cb.mintotray"), ToolTipText: i18n.T("tt.mintotray"), Alignment: AlignHNearVNear},
 					CheckBox{AssignTo: &closeTrayCb, Text: i18n.T("cb.closetotray"), ToolTipText: i18n.T("tt.closetotray"), Alignment: AlignHNearVNear},
 				},
 			},
 			// Log
 			GroupBox{
-				Title:  i18n.T("log.group"),
-				Layout: VBox{Margins: Margins{Left: 8, Top: 6, Right: 8, Bottom: 8}, Spacing: 4},
+				AssignTo: &logGroup,
+				Title:    i18n.T("log.group"),
+				Layout:   VBox{Margins: Margins{Left: 8, Top: 6, Right: 8, Bottom: 8}, Spacing: 4},
 				Children: []Widget{
 					TextEdit{
 						AssignTo:      &logBox,
@@ -482,8 +505,7 @@ func quitApp() {
 	os.Exit(0)
 }
 
-// setLang switches the UI language (persisted to config.json; takes effect on
-// restart).
+// setLang switches the UI language (persisted to config.json; applied live).
 func setLang(code string) {
 	if i18n.GetLang() == code {
 		return
@@ -496,17 +518,102 @@ func setLang(code string) {
 		return
 	}
 	savedConfig.Lang = code
+	retranslateUI()
+	log.Print(i18n.F("log.langChanged", i18n.LangName(code)))
+}
+
+// retranslateUI re-applies the current-language strings to every text-bearing
+// widget (menus, groups, labels, buttons, tooltips, tray), so switching the
+// language takes effect immediately without a restart.
+func retranslateUI() {
+	if mainWin != nil {
+		mainWin.SetTitle(i18n.T("ui.title"))
+	}
+	setText := func(a *walk.Action, key string) {
+		if a != nil {
+			a.SetText(i18n.T(key))
+		}
+	}
+	setText(fileMenuAct, "menu.file")
+	setText(exitAct, "menu.exit")
+	setText(toolsMenuAct, "menu.tools")
+	setText(testSleepAct, "menu.testSleep")
+	setText(langMenuAct, "menu.language")
+	setText(helpMenuAct, "menu.help")
+	setText(checkUpdAct, "menu.checkUpdate")
+	setText(githubAct, "menu.github")
+	setText(aboutAct, "menu.about")
+	setText(trayOpenAct, "menu.showWindow")
+	setText(trayExitAct, "menu.exit")
+
+	setGroup := func(g *walk.GroupBox, key string) {
+		if g != nil {
+			g.SetTitle(i18n.T(key))
+		}
+	}
+	setGroup(statusGroup, "status.group")
+	setGroup(configGroup, "config.group")
+	setGroup(logGroup, "log.group")
+
+	if delayLbl != nil {
+		delayLbl.SetText(i18n.T("param.delay"))
+	}
+	if startupLbl != nil {
+		startupLbl.SetText(i18n.T("section.startup"))
+	}
+	if windowLbl != nil {
+		windowLbl.SetText(i18n.T("section.window"))
+	}
+
+	if delayEdit != nil {
+		delayEdit.SetToolTipText(i18n.T("tt.delay"))
+	}
+	setCb := func(cb *walk.CheckBox, key, ttKey string) {
+		if cb != nil {
+			cb.SetText(i18n.T(key))
+			cb.SetToolTipText(i18n.T(ttKey))
+		}
+	}
+	setCb(autoBootCb, "cb.autoboot", "tt.autoboot")
+	setCb(autoGuardCb, "cb.autoguard", "tt.autoguard")
+	setCb(minTrayCb, "cb.mintotray", "tt.mintotray")
+	setCb(closeTrayCb, "cb.closetotray", "tt.closetotray")
+
+	if tray != nil {
+		tray.SetToolTip(i18n.T("tray.tooltip"))
+	}
+
+	updateStatus("")
+	updateStartStopBtn()
 	updateLangMenu()
-	log.Print(i18n.F("log.langChanged", i18n.T("lang."+code)))
+}
+
+// langMenuItems builds one checkable menu action per supported language.
+func langMenuItems() []MenuItem {
+	codes := i18n.Codes()
+	langActs = make([]*walk.Action, len(codes))
+	items := make([]MenuItem, 0, len(codes))
+	for i, code := range codes {
+		i, code := i, code
+		langActs[i] = &walk.Action{}
+		items = append(items, Action{
+			AssignTo:    &langActs[i],
+			Text:        i18n.LangName(code),
+			Checkable:   true,
+			Checked:     i18n.GetLang() == code,
+			OnTriggered: func() { setLang(code) },
+		})
+	}
+	return items
 }
 
 // updateLangMenu checks the menu item matching the current language.
 func updateLangMenu() {
-	if zhLangAct != nil {
-		zhLangAct.SetChecked(i18n.GetLang() == "zh")
-	}
-	if enLangAct != nil {
-		enLangAct.SetChecked(i18n.GetLang() == "en")
+	cur := i18n.GetLang()
+	for _, act := range langActs {
+		if act != nil {
+			act.SetChecked(act.Text() == i18n.LangName(cur))
+		}
 	}
 }
 
@@ -577,6 +684,12 @@ func applyUiConfig() {
 func updateStatus(s string) {
 	if statusLbl == nil {
 		return
+	}
+	if s == "" {
+		s = "stopped"
+		if engine.Running() {
+			s = "running"
+		}
 	}
 	if s == "running" {
 		statusLbl.SetText(i18n.T("status.guarding"))

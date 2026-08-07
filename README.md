@@ -1,6 +1,6 @@
 # LidReSleep
 
-**English** | [简体中文](./README.zh-CN.md)
+**English** | [简体中文](./README.zh-CN.md) | [日本語](./README.ja.md) | [한국어](./README.ko.md) | [Français](./README.fr.md) | [Deutsch](./README.de.md) | [Español](./README.es.md) | [Русский](./README.ru.md) | [Português](./README.pt.md) | [Italiano](./README.it.md)
 
 A tiny Windows background tool that stops your laptop from heating up overnight after you close the lid.
 
@@ -9,7 +9,7 @@ Many modern laptops (Modern Standby) do not truly sleep when the lid is closed �
 What LidReSleep does is simple: **sleep when the lid closes; if it is woken unexpectedly while the lid is still closed, sleep again automatically until you open the lid.**
 
 - Portable single-file app, no install needed
-- Chinese & English UI, auto-detected from system language
+- 10 UI languages (简体中文 / English / 日本語 / 한국어 / Français / Deutsch / Español / Русский / Português / Italiano), auto-detected from system language
 - Windows 10/11 (x64 / ARM64 / x86), pick the build matching your CPU
 
 ![LidReSleep screenshot](screenshot.jpg)
@@ -44,7 +44,7 @@ After that: close the lid → sleep immediately; woken with the lid still closed
 ### Menus
 - **File**: Exit
 - **Tools**: Test Sleep (sleep once to verify)
-- **Language**: 中文 / English (check shows current; takes effect after restart)
+- **Language**: 10 languages (check shows current; applies immediately)
 - **Help**: Check for Updates (checks GitHub for a new version), Project Page, About (features & Modern Standby explainer)
 
 ### Log

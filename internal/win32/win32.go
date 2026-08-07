@@ -99,12 +99,33 @@ func CheckSingleInstance() bool {
 	return err == syscall.ERROR_ALREADY_EXISTS
 }
 
-// SystemIsChinese reports whether the system UI language is Chinese
-// (primary language LANG_CHINESE = 0x04).
-func SystemIsChinese() bool {
+// SystemUILanguage returns the lowercase ISO 639-1 code of the system UI
+// language when it is one of the languages supported by the UI (zh/en/ja/ko/
+// fr/de/es/ru/pt/it), otherwise "en". Detection uses the primary language ID.
+func SystemUILanguage() string {
 	r, _, _ := procGetUserDefaultUILanguage.Call()
-	langID := uint16(r)
-	return langID&0x03FF == 0x04
+	switch uint16(r) & 0x03FF {
+	case 0x04: // LANG_CHINESE
+		return "zh"
+	case 0x11: // LANG_JAPANESE
+		return "ja"
+	case 0x12: // LANG_KOREAN
+		return "ko"
+	case 0x0C: // LANG_FRENCH
+		return "fr"
+	case 0x07: // LANG_GERMAN
+		return "de"
+	case 0x0A: // LANG_SPANISH
+		return "es"
+	case 0x19: // LANG_RUSSIAN
+		return "ru"
+	case 0x16: // LANG_PORTUGUESE
+		return "pt"
+	case 0x10: // LANG_ITALIAN
+		return "it"
+	default:
+		return "en"
+	}
 }
 
 // RegisterClassExW registers the given window class.

@@ -26,7 +26,7 @@ type PersistConfig struct {
 	AutoStartGuard bool   `json:"auto_start_guard"` // auto-guard after login
 	MinToTray      bool   `json:"min_to_tray"`      // minimize to tray
 	CloseToTray    bool   `json:"close_to_tray"`    // close window minimizes to tray
-	Lang           string `json:"lang"`             // UI language zh/en; empty = auto
+	Lang           string `json:"lang"`             // UI language code; empty = auto (zh/en/ja/ko/fr/de/es/ru/pt/it)
 }
 
 // Default returns the default configuration.
